@@ -17,7 +17,7 @@ class OddsFeed(BaseFeed):
     def get_url(self):
         xml_filename = 'odds_{league}.xml'.format(league=self.league)
         url = self.BASE_URL + posixpath.join('/', self.sport, self.league, 'odds',
-            xml_filename) 
+            xml_filename)
         return url
 
     def parse(self, xml_text):
@@ -30,44 +30,41 @@ class OddsFeed(BaseFeed):
     def _parse_competition(self, element):
         competition = Competition.parse(element)
 
-        competition.point_spread = [self._parse_point_spread(b)
+        competition.point_spread = [self._parse_point_spread(b, competition)
             for b in element.xpath('./betting/point-spread')]
-        competition.over_under = [self._parse_over_under(b)
+        competition.over_under = [self._parse_over_under(b, competition)
             for b in element.xpath('./betting/over-under')]
 
         return competition
 
     def _parse_odds(self, element):
         return dict(
-            competition=self,    
             line_id=element.xpath('./id/text()')[0],
             date=dateutil.parser.parse(element.get('date')),
             opening=(element.get('opening') == 'true'),
             status=element.get('status'),
             sportsbook=element.xpath('./sportsbook/text()')[0],
-        )    
+        )
 
-    def _parse_point_spread(self, element):
+    def _parse_point_spread(self, element, competition):
         common_kwargs = self._parse_odds(element)
         return PointSpread(
+            competition=competition,
             home_handicap=float(element.xpath('./home-handicap/text()')[0]),
             home_odds=int(element.xpath('./home-odds/american/text()')[0]),
             away_odds=int(element.xpath('./away-odds/american/text()')[0]),
             **common_kwargs
         )
 
-    def _parse_over_under(self, element):
+    def _parse_over_under(self, element, competition):
         common_kwargs = self._parse_odds(element)
         return OverUnder(
+            competition=competition,
             total=float(element.xpath('./total/text()')[0]),
             over_odds=int(element.xpath('./over-odds/american/text()')[0]),
             under_odds=int(element.xpath('./under-odds/american/text()')[0]),
             **common_kwargs
         )
-
-
-
-
 
 
 class BaseOdds(object):
@@ -81,7 +78,7 @@ class BaseOdds(object):
 
 
 class MoneyLine(BaseOdds):
-    def __init__(self, competition, line_id, date, opening, status, sportsbook, 
+    def __init__(self, competition, line_id, date, opening, status, sportsbook,
                  home_odds, away_odds):
         super(MoneyLine, self).__init__(competition, line_id, date, opening, status,
             sportsbook)
@@ -110,7 +107,7 @@ class OverUnder(BaseOdds):
         self.total = total
         self.over_odds = over_odds
         self.under_odds = under_odds
-                 
+
 
 def get_odds(sport, league, competition=None, odds_type=None, fetcher=None):
     feed = OddsFeed(sport, league, fetcher=fetcher)
@@ -120,11 +117,11 @@ def get_odds(sport, league, competition=None, odds_type=None, fetcher=None):
         competitions = [c for c in competitions
                         if c.competition_id == competition.competition_id]
 
-    odds = []     
+    odds = []
     for c in competitions:
         if odds_type is None:
             odds += c.odds
         else:
             odds += getattr(c, odds_type)
 
-    return odds 
+    return odds
