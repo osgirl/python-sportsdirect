@@ -72,12 +72,23 @@ class Play(object):
         self.play_id = play_id
         self.period_number = period_number
         self.time = play_time
+        self.seconds_remaining_in_game = self._generate_seconds_remaining()
         self.team = team
         self.yard_line = yard_line
         self.down = down
         self.yards_to_go = yards_to_go
 
         self.play_events = []
+
+    def _generate_seconds_remaining(self):
+        if self.time.startswith('PT') and self.time.endswith('S'):
+            (minutes, seconds) = self.time[2:-1].split('M')
+            offset = 0
+            if self.period_number < 4:
+                offset = (4 - self.period_number) * 15 * 60
+            return offset + int(seconds) + (60 * int(minutes))
+        else:
+            return -1
 
     @classmethod
     def parse(cls, element):
