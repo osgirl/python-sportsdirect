@@ -16,7 +16,6 @@ class PlayByPlayFeed(BaseFeed):
 
         self.plays = []
 
-
     def get_url(self):
         xml_filename = 'play_by_play_{league}_{competition}.xml'.format(
             league=self.league, competition=self.competition)
@@ -44,6 +43,27 @@ class PlayByPlayFeed(BaseFeed):
                                     for e
                                     in el.xpath('./play-events/play-event')]
                 self.plays.append(play)
+
+    def calculate_score_at_play(self, play_id):
+        score = {'home': 0, 'home': 0}
+        event_points = {
+            'defensive_touchdown': 6,
+            'field_goal_by': 3,
+            'one_point_conversion': 1,
+            'safety': 2,
+            'touchdown': 6,
+            'two_point_conversion': 2
+        }
+        idx = 0
+        play = self.plays[idx]
+        while play.play_id != play_id:
+            if play.play_event in event_points:
+                if play.team == self.competition.home_team:
+                    score['home'] += event_points[play.play_event]
+                elif play.team == self.competition.away_team:
+                    score['away'] += event_points[play.play_event]
+            idx += 1
+        return score
 
 
 class Possession(object):
