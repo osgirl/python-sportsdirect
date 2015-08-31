@@ -1,9 +1,10 @@
 import os.path
+import sportsdirect
+
 from unittest import TestCase
 
 from sportsdirect.fetch import FilesystemFetcher
-import sportsdirect.playbyplay
-
+from sportsdirect.playbyplay import PlayByPlayFeed
 from sportsdirect.football.winprobability import calculate_winprobability
 
 
@@ -21,7 +22,7 @@ class PlayByPlayTestCase(TestCase):
         competition = 28192
 
         game_feed = PlayByPlayFeed(sport, league, season, competition, fetcher)
-        feed.load()
+        game_feed.load()
 
         plays = sportsdirect.playbyplay.get_plays(
             sport=sport, league=league, season=season, competition=competition, fetcher=fetcher)

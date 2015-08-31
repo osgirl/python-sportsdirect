@@ -1,9 +1,12 @@
 import posixpath
 
+from csv import DictReader
 from lxml import etree
 
 from .base import Competition, Team, Player
 from .feed import BaseFeed
+
+EP_DATA_PATH = 'sportsdirect/data/football_ep_values.csv'
 
 
 class PlayByPlayFeed(BaseFeed):
@@ -12,6 +15,8 @@ class PlayByPlayFeed(BaseFeed):
         self.league = league
         self.season = season
         self.competition = competition
+        self.home_team = None
+        self.away_team = None
         super(PlayByPlayFeed, self).__init__(fetcher=fetcher)
 
         self.plays = []
@@ -30,6 +35,8 @@ class PlayByPlayFeed(BaseFeed):
 
         competition_el = root.xpath('//*/competition')[0]
         competition = Competition.parse(competition_el)
+        self.home_team = competition.home_team
+        self.away_team = competition.away_team
 
         possession = None
         for el in competition_el.xpath('./play-by-play/possession|./play-by-play/play'):
@@ -44,8 +51,34 @@ class PlayByPlayFeed(BaseFeed):
                                     in el.xpath('./play-events/play-event')]
                 self.plays.append(play)
 
+    def get_distance_to_endzone_at_play(self, play_id):
+        play = next(p for p in self.plays if p.play_id == play_id)
+        if ((play.yard_line_align == 'home' and self.home_team == play.team) or
+                (play.yard_line_align == 'away' and self.away_team == play.team)):
+            return 50 - play.yard_line + 50
+        else:
+            return play.yard_line
+
+    def calculate_ep_adjusted_score_at_play(self, play_id):
+        play = next(p for p in self.plays if p.play_id == play_id)
+        score = self.calculate_score_at_play(play_id)
+        yardline = self.get_distance_to_endzone_at_play(play_id)
+        signature = '%d-%d-%d' % (self.down, self.distance, yardline)
+        # Load ep data as dict, look for this exact signature. If not found, look
+        # for closest match (presumably there will be 2 candidates for yardline).
+        # If a tie on yardline (1 3 yards too short; the other 3 yards too long, say)
+        # arbitrarily pick one to use. If no exact down/distance candidates exist,
+        # or they're more than 20 yards off, fuzz the distance value as well and look
+        # for best candidates with fuzzy distance and fuzzy yardline.
+        with open(EP_DATA_PATH) as fh:
+            reader = DictReader(fh)
+            for line in reader:
+                if line['State'] == signature:
+                    return float(line['Markov EP'])
+        return score
+
     def calculate_score_at_play(self, play_id):
-        score = {'home': 0, 'home': 0}
+        score = {'home': 0, 'away': 0}
         event_points = {
             'defensive_touchdown': 6,
             'field_goal_by': 3,
@@ -57,12 +90,15 @@ class PlayByPlayFeed(BaseFeed):
         idx = 0
         play = self.plays[idx]
         while play.play_id != play_id:
-            if play.play_event in event_points:
-                if play.team == self.competition.home_team:
-                    score['home'] += event_points[play.play_event]
-                elif play.team == self.competition.away_team:
-                    score['away'] += event_points[play.play_event]
+            for pe in play.play_events:
+                if pe.event_type in event_points:
+                    if play.team == self.home_team:
+                        score['home'] += event_points[pe.event_type]
+                    elif play.team == self.away_team:
+                        score['away'] += event_points[pe.event_type]
             idx += 1
+            if idx < len(self.plays):
+                play = self.plays[idx]
         return score
 
 
@@ -87,7 +123,8 @@ class Possession(object):
 
 class Play(object):
     def __init__(self, play_id, period_number, play_time, team,
-            yard_line=None, down=None, yards_to_go=None, possession=None):
+            yard_line=None, yard_line_align=None, down=None, yards_to_go=None,
+            possession=None):
         self.possession = possession
         self.play_id = play_id
         self.period_number = period_number
@@ -95,6 +132,7 @@ class Play(object):
         self.seconds_remaining_in_game = self._generate_seconds_remaining()
         self.team = team
         self.yard_line = yard_line
+        self.yard_line_align = yard_line_align
         self.down = down
         self.yards_to_go = yards_to_go
 
@@ -114,8 +152,10 @@ class Play(object):
     def parse(cls, element):
         try:
             yard_line = int(element.xpath('./yard-line/text()')[0])
+            yard_line_align = element.xpath('./yard-line/@align')[0]
         except IndexError:
             yard_line = None
+            yard_line_align = None
 
         try:
             down = int(element.xpath('./down/text()')[0])
@@ -133,6 +173,7 @@ class Play(object):
             play_time=element.xpath('./event-time/time/text()')[0],
             team=Team.parse(element.xpath('./team')[0]),
             yard_line=yard_line,
+            yard_line_align=yard_line_align,
             down=down,
             yards_to_go=yards_to_go
         )

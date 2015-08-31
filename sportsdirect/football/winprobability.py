@@ -41,9 +41,12 @@ def calculate_winprobability(game_feed, play):
     subtract that to the current margin as necessary.
     """
     # Need to calculate margin at beginning of this play in the game, then add expected points
-    score = game_feed.calculate_score_at_play(play.play_id)
+    score = game_feed.calculate_ep_adjusted_score_at_play(play.play_id)
     margin = {'home': score['home'] - score['away'], 'away': score['away'] - score['home']}
     vegas_line = {'home': 0, 'away': 0}
+    total_minutes = 60
+    if play.period_number not in [1, 2, 3, 4]:
+        total_minutes = 15
     minutes_remaining = math.ceil(play.seconds_remaining_in_game/60)
     #print play.play_id
     #print play.possession.team.name, play.possession.time, play.period_number, play.team.name,
