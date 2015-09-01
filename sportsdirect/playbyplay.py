@@ -59,22 +59,76 @@ class PlayByPlayFeed(BaseFeed):
         else:
             return play.yard_line
 
-    def calculate_ep_adjusted_score_at_play(self, play_id):
-        play = next(p for p in self.plays if p.play_id == play_id)
-        score = self.calculate_score_at_play(play_id)
-        yardline = self.get_distance_to_endzone_at_play(play_id)
-        signature = '%d-%d-%d' % (self.down, self.distance, yardline)
-        # Load ep data as dict, look for this exact signature. If not found, look
-        # for closest match (presumably there will be 2 candidates for yardline).
-        # If a tie on yardline (1 3 yards too short; the other 3 yards too long, say)
-        # arbitrarily pick one to use. If no exact down/distance candidates exist,
-        # or they're more than 20 yards off, fuzz the distance value as well and look
-        # for best candidates with fuzzy distance and fuzzy yardline.
+    def get_expected_points_from_signature(self, down, distance, yardline):
+        """
+        Load ep data as dict, look for this exact signature. If not found, look
+        for closest match (presumably there will be 2 candidates for yardline).
+        If a tie on yardline (1 3 yards too short; the other 3 yards too long, say)
+        arbitrarily pick one to use. If no exact down/distance candidates exist,
+        or they're more than 20 yards off, fuzz the distance value as well and look
+        for best candidates with fuzzy distance and fuzzy yardline.
+        """
+        signature = '%s-%s-%s' % (down, distance, yardline)
+        states = {}
+        max_fuzz_distance = 15
         with open(EP_DATA_PATH) as fh:
             reader = DictReader(fh)
             for line in reader:
                 if line['State'] == signature:
                     return float(line['Markov EP'])
+                line_signature = '%s-%s-%s' % (line['Down'], line['DTG'], line['Ydline'])
+                states[line_signature] = line
+            """
+            # No exact match found, so look for closest yardline with same down/distance
+            fuzz_distance = 1
+            while fuzz_distance <= max_fuzz_distance:
+                farther_signature = '%s-%s-%s' % (
+                    line['Down'], line['DTG'], int(line['Ydline']) + fuzz_distance)
+                closer_signature = '%s-%s-%s' % (
+                    line['Down'], line['DTG'], int(line['Ydline']) - fuzz_distance)
+                signatures = [farther_signature, closer_signature]
+                for sig in signatures:
+                    if sig in states:
+                        return float(states[sig]['Markov EP'])
+                fuzz_distance += 1
+            """
+            # Now we have to fuzz both yardline and distance.
+            fuzz_distance = 1
+            while fuzz_distance <= max_fuzz_distance:
+                farther_farther_signature = '%s-%s-%s' % (
+                    line['Down'],
+                    int(line['DTG']) + fuzz_distance,
+                    int(line['Ydline']) + fuzz_distance)
+                farther_closer_signature = '%s-%s-%s' % (
+                    line['Down'],
+                    int(line['DTG']) + fuzz_distance,
+                    int(line['Ydline']) - fuzz_distance)
+                closer_farther_signature = '%s-%s-%s' % (
+                    line['Down'],
+                    int(line['DTG']) - fuzz_distance,
+                    int(line['Ydline']) + fuzz_distance)
+                closer_closer_signature = '%s-%s-%s' % (
+                    line['Down'],
+                    int(line['DTG']) - fuzz_distance,
+                    int(line['Ydline']) - fuzz_distance)
+                signatures = [
+                    farther_farther_signature, farther_closer_signature, closer_farther_signature,
+                    closer_closer_signature]
+                for sig in signatures:
+                    if sig in states:
+                        return float(states[sig]['Markov EP'])
+                fuzz_distance += 1
+        return 0
+
+    def calculate_ep_adjusted_score_at_play(self, play_id):
+        play = next(p for p in self.plays if p.play_id == play_id)
+        score = self.calculate_score_at_play(play_id)
+        yardline = self.get_distance_to_endzone_at_play(play_id)
+        ep = self.get_expected_points_from_signature(play.down, play.yards_to_go, yardline)
+        if play.team.name == self.home_team.name:
+            score['home'] += ep
+        else:
+            score['away'] += ep
         return score
 
     def calculate_score_at_play(self, play_id):
@@ -92,9 +146,9 @@ class PlayByPlayFeed(BaseFeed):
         while play.play_id != play_id:
             for pe in play.play_events:
                 if pe.event_type in event_points:
-                    if play.team == self.home_team:
+                    if play.team.name == self.home_team.name:
                         score['home'] += event_points[pe.event_type]
-                    elif play.team == self.away_team:
+                    elif play.team.name == self.away_team.name:
                         score['away'] += event_points[pe.event_type]
             idx += 1
             if idx < len(self.plays):

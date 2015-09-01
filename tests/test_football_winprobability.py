@@ -27,4 +27,5 @@ class PlayByPlayTestCase(TestCase):
         plays = sportsdirect.playbyplay.get_plays(
             sport=sport, league=league, season=season, competition=competition, fetcher=fetcher)
         for p in plays:
-            calculate_winprobability(game_feed, p)
+            probability = calculate_winprobability(game_feed, p)
+            print 'Probability:', probability

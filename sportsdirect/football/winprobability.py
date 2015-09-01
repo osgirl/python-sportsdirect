@@ -1,4 +1,5 @@
 import math
+import scipy.stats
 
 from ..base import Competition, Team, Player
 from ..playbyplay import PlayByPlayFeed, Possession, Play, PlayEvent
@@ -35,21 +36,47 @@ def calculate_winprobability(game_feed, play):
         ))
     )
 
+    This represents the probability the home team wins by 1 point or more, plus the probability a
+    tie occurs (in which case they have a 50% chance to win, which seems sketchy to me but hey...)
+
     However, we first need to adjust the away_margin to account for the current set of in-game
     circumstances (down, field possession, ball, etc). To do that, use those circumstances to
     find the best-fitting expected-points situation and the resulting EP value, and add or
     subtract that to the current margin as necessary.
+
+    Note that we'll only need to calculate win probability for the home team, since that will
+    also give us the probability for the away team.
     """
-    # Need to calculate margin at beginning of this play in the game, then add expected points
+    if play.seconds_remaining_in_game < 1:
+        return None
+    if not play.down or not play.yards_to_go:
+        return calculate_simplified_winprobability(game_feed, play)
+    print 'Score:', game_feed.calculate_score_at_play(play.play_id)
     score = game_feed.calculate_ep_adjusted_score_at_play(play.play_id)
-    margin = {'home': score['home'] - score['away'], 'away': score['away'] - score['home']}
-    vegas_line = {'home': 0, 'away': 0}
+    print 'Score (with expected):', score, 'Time:', play.time, 'Quarter:', play.period_number
+    print 'Down:', play.down, 'Yards to go:', play.yards_to_go, 'Yardline:', play.yard_line
+    away_margin = score['away'] - score['home']
+    vegas_line = {'home': 7, 'away': 0}
     total_minutes = 60
     if play.period_number not in [1, 2, 3, 4]:
         total_minutes = 15
     minutes_remaining = math.ceil(play.seconds_remaining_in_game/60)
-    #print play.play_id
-    #print play.possession.team.name, play.possession.time, play.period_number, play.team.name,
-    #play.down, play.time
-    #for pe in play.play_events:
-    #    print pe.event_type
+
+    p_win = 1 - scipy.stats.norm(
+        -vegas_line['home'] * (minutes_remaining / total_minutes),
+        (13.45 / math.sqrt((60 / minutes_remaining)))
+    ).cdf(away_margin + 0.5)
+
+    p_tie = scipy.stats.norm(
+        -vegas_line['home'] * (minutes_remaining / total_minutes),
+        (13.45 / math.sqrt((60 / minutes_remaining)))
+    ).cdf(away_margin + 0.5) - scipy.stats.norm(
+        -vegas_line['home'] * (minutes_remaining / total_minutes),
+        (13.45 / math.sqrt((60 / minutes_remaining)))
+    ).cdf(away_margin - 0.5)
+
+    return {'home': p_win + (0.5 * p_tie), 'away': 1 - (p_win + (0.5 * p_tie))}
+
+
+def calculate_simplified_winprobability(game_feed, play):
+    print 'Simplify'
