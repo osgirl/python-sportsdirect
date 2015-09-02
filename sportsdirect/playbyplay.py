@@ -92,7 +92,8 @@ class PlayByPlayFeed(BaseFeed):
                         return float(states[sig]['Markov EP'])
                 fuzz_distance += 1
             """
-            # Now we have to fuzz both yardline and distance.
+            # Fuzz both yardline and distance.
+            # Should probably find best candidates independently of each other
             fuzz_distance = 1
             while fuzz_distance <= max_fuzz_distance:
                 farther_farther_signature = '%s-%s-%s' % (
@@ -178,7 +179,7 @@ class Possession(object):
 class Play(object):
     def __init__(self, play_id, period_number, play_time, team,
             yard_line=None, yard_line_align=None, down=None, yards_to_go=None,
-            possession=None):
+            possession=None, description=None):
         self.possession = possession
         self.play_id = play_id
         self.period_number = period_number
@@ -189,6 +190,7 @@ class Play(object):
         self.yard_line_align = yard_line_align
         self.down = down
         self.yards_to_go = yards_to_go
+        self.description = description
 
         self.play_events = []
 
@@ -217,6 +219,11 @@ class Play(object):
             down = None
 
         try:
+            description = element.xpath('./description/text()')[0]
+        except IndexError:
+            description = None
+
+        try:
             yards_to_go = int(element.xpath('./yards-to-go/yards/text()')[0])
         except IndexError:
             yards_to_go = None
@@ -229,7 +236,8 @@ class Play(object):
             yard_line=yard_line,
             yard_line_align=yard_line_align,
             down=down,
-            yards_to_go=yards_to_go
+            yards_to_go=yards_to_go,
+            description=description
         )
 
 
