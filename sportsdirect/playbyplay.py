@@ -129,9 +129,12 @@ class Play(object):
     def parse(cls, element):
         try:
             yard_line = int(element.xpath('./yard-line/text()')[0])
-            yard_line_align = element.xpath('./yard-line/@align')[0]
         except IndexError:
             yard_line = None
+
+        try:
+            yard_line_align = element.xpath('./yard-line/@align')[0]
+        except IndexError:
             yard_line_align = None
 
         try:
