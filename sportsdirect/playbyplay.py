@@ -64,6 +64,8 @@ class FootballPlayByPlayFeed(PlayByPlayFeed):
         idx = 0
         play = self.plays[idx]
         while play.play_id != play_id:
+            if play.play_reversed:
+                continue
             for pe in play.play_events:
                 if pe.event_type in event_points:
                     if play.team.name == self.home_team.name:
