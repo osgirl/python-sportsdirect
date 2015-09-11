@@ -100,7 +100,7 @@ class Play(object):
     # class.
     def __init__(self, play_id, period_number, play_time, team,
             yard_line=None, yard_line_align=None, down=None, yards_to_go=None,
-            possession=None, description=None):
+            possession=None, description=None, play_reversed=False):
         self.possession = possession
         self.play_id = play_id
         self.period_number = period_number
@@ -112,6 +112,7 @@ class Play(object):
         self.down = down
         self.yards_to_go = yards_to_go
         self.description = description
+        self.play_reversed = play_reversed
 
         self.play_events = []
 
@@ -152,6 +153,11 @@ class Play(object):
         except IndexError:
             yards_to_go = None
 
+        try:
+            play_reversed = element.xpath('./challenge/play-reversed/text()')[0].lower() == 'true'
+        except IndexError:
+            play_reversed = False
+
         return cls(
             play_id=element.xpath('./id/text()')[0],
             period_number=int(element.xpath('./event-time/period-number/text()')[0]),
@@ -161,7 +167,8 @@ class Play(object):
             yard_line_align=yard_line_align,
             down=down,
             yards_to_go=yards_to_go,
-            description=description
+            description=description,
+            play_reversed=play_reversed
         )
 
 
