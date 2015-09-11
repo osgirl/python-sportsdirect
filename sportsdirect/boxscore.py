@@ -6,7 +6,6 @@ from .base import Competition, Team
 from .feed import BaseFeed
 
 
-
 class BoxScoreFeed(BaseFeed):
     def __init__(self, sport, league, season, competition, fetcher=None):
         self.sport = sport
@@ -26,5 +25,6 @@ class BoxScoreFeed(BaseFeed):
 
     def parse(self, xml_text):
         root = etree.fromstring(xml_text)
-        print root.xpath('//team-sport-content')
+        c = root.xpath('//team-sport-content/league-content/season-content/competition')
+        self.home_handicap = c.xpath('./betting/point-spread[@closing="true"]/home-handicap/text()')
         return self
