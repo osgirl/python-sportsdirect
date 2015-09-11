@@ -64,14 +64,13 @@ class FootballPlayByPlayFeed(PlayByPlayFeed):
         idx = 0
         play = self.plays[idx]
         while play.play_id != play_id:
-            if play.play_reversed:
-                continue
-            for pe in play.play_events:
-                if pe.event_type in event_points:
-                    if play.team.name == self.home_team.name:
-                        score['home'] += event_points[pe.event_type]
-                    elif play.team.name == self.away_team.name:
-                        score['away'] += event_points[pe.event_type]
+            if not play.play_reversed:
+                for pe in play.play_events:
+                    if pe.event_type in event_points:
+                        if play.team.name == self.home_team.name:
+                            score['home'] += event_points[pe.event_type]
+                        elif play.team.name == self.away_team.name:
+                            score['away'] += event_points[pe.event_type]
             idx += 1
             if idx < len(self.plays):
                 play = self.plays[idx]
