@@ -64,6 +64,7 @@ class FootballPlayByPlayFeed(PlayByPlayFeed):
         idx = 0
         play = self.plays[idx]
         while play.play_id != play_id:
+            print play.play_reversed
             if not play.play_reversed:
                 for pe in play.play_events:
                     if pe.event_type in event_points:
