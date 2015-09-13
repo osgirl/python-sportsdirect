@@ -63,6 +63,7 @@ class FootballPlayByPlayFeed(PlayByPlayFeed):
         }
         idx = 0
         play = self.plays[idx]
+        print 'counting'
         while play.play_id != play_id:
             if not play.play_reversed:
                 for pe in play.play_events:
@@ -75,6 +76,7 @@ class FootballPlayByPlayFeed(PlayByPlayFeed):
             idx += 1
             if idx < len(self.plays):
                 play = self.plays[idx]
+        print 'done'
         return score
 
 
