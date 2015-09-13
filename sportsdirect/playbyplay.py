@@ -176,6 +176,7 @@ class Play(object):
                 penalty['enforced'] = p.xpath('./enforced/text()')[0].lower() == 'true'
                 penalty['yards'] = int(p.xpath('./yards/text()')[0])
                 if (p.xpath('./no-play/text()')[0] == 'true'):
+                    print 'reversed'
                     play_reversed = False
                 penalties.append(penalty)
         except IndexError:
