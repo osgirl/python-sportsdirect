@@ -163,11 +163,10 @@ class Play(object):
         except IndexError:
             play_reversed = False
 
-        if not play_reversed:
-            try:
-                play_reversed = element.xpath('./penalty/no-play/text()')[0].lower() == 'true'
-            except IndexError:
-                play_reversed = False
+        try:
+            penalty_reversed = element.xpath('./penalty/no-play/text()')[0].lower() == 'true'
+        except IndexError:
+            penalty_reversed = False
 
         penalties = []
         try:
@@ -179,13 +178,14 @@ class Play(object):
                 penalty['yards'] = int(p.xpath('./yards/text()')[0])
                 if (p.xpath('./no-play/text()')[0] == 'true'):
                     print description, 'reversed'
-                    play_reversed = False
+                    penalty_reversed = True
                 penalties.append(penalty)
         except IndexError:
             pass
 
-        if not play_reversed:
+        if play_reversed or penalty_reversed:
             print description
+            play_reversed = True
         return cls(
             play_id=element.xpath('./id/text()')[0],
             period_number=int(element.xpath('./event-time/period-number/text()')[0]),
