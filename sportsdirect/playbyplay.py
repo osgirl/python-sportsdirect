@@ -63,12 +63,10 @@ class FootballPlayByPlayFeed(PlayByPlayFeed):
         }
         idx = 0
         play = self.plays[idx]
-        print 'counting'
         while play.play_id != play_id:
             if not play.play_reversed:
                 for pe in play.play_events:
                     if pe.event_type in event_points:
-                        print play.description, 'counted'
                         if play.team.name == self.home_team.name:
                             score['home'] += event_points[pe.event_type]
                         elif play.team.name == self.away_team.name:
@@ -76,7 +74,6 @@ class FootballPlayByPlayFeed(PlayByPlayFeed):
             idx += 1
             if idx < len(self.plays):
                 play = self.plays[idx]
-        print 'done'
         print score
         return score
 
