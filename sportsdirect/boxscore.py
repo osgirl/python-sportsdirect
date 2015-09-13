@@ -1,5 +1,4 @@
 import posixpath
-import sys
 
 from lxml import etree
 
@@ -26,7 +25,6 @@ class BoxScoreFeed(BaseFeed):
 
     def parse(self, xml_text):
         root = etree.fromstring(xml_text)
-        sys.stderr.write(xml_text)
         c = root.xpath('//team-sport-content/league-content/season-content/competition')[0]
         self.home_handicap = float(
             c.xpath('./betting/point-spread[@closing="true"]/home-handicap/text()')[0])
