@@ -118,6 +118,7 @@ class Play(object):
 
         self.play_events = []
 
+
     def _generate_seconds_remaining(self):
         if self.time.startswith('PT') and self.time.endswith('S'):
             (minutes, seconds) = self.time[2:-1].split('M')
