@@ -71,6 +71,8 @@ class FootballPlayByPlayFeed(PlayByPlayFeed):
                             score['home'] += event_points[pe.event_type]
                         elif play.team.name == self.away_team.name:
                             score['away'] += event_points[pe.event_type]
+                else:
+                    print 'resversed', play.description
             idx += 1
             if idx < len(self.plays):
                 play = self.plays[idx]
@@ -182,6 +184,8 @@ class Play(object):
         except IndexError:
             pass
 
+        if not play_reversed:
+            print description
         return cls(
             play_id=element.xpath('./id/text()')[0],
             period_number=int(element.xpath('./event-time/period-number/text()')[0]),
