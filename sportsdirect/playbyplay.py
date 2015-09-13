@@ -77,6 +77,7 @@ class FootballPlayByPlayFeed(PlayByPlayFeed):
             if idx < len(self.plays):
                 play = self.plays[idx]
         print 'done'
+        print score
         return score
 
 
