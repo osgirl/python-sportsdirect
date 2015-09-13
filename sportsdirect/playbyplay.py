@@ -72,6 +72,8 @@ class FootballPlayByPlayFeed(PlayByPlayFeed):
                             score['home'] += event_points[pe.event_type]
                         elif play.team.name == self.away_team.name:
                             score['away'] += event_points[pe.event_type]
+            else:
+                print play.description, 'counted reversed'
             idx += 1
             if idx < len(self.plays):
                 play = self.plays[idx]
