@@ -161,6 +161,7 @@ class Play(object):
         except IndexError:
             play_reversed = False
 
+        penalty_reversed = False
         penalties = []
         try:
             for p in element.xpath('./penalty'):
