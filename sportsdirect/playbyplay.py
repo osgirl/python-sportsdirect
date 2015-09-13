@@ -175,7 +175,8 @@ class Play(object):
                     print description, 'reversed'
                     penalty_reversed = True
                 penalties.append(penalty)
-        except IndexError:
+        except IndexError, e:
+            print 'error', e
             pass
 
         if play_reversed or penalty_reversed:
