@@ -64,10 +64,7 @@ class FootballPlayByPlayFeed(PlayByPlayFeed):
         idx = 0
         play = self.plays[idx]
         while play.play_id != play_id:
-            if not play.play_reversed:
-                if play.description == '6-J. Cutler pass to 17-A. Jeffery for 4 yards, TOUCHDOWN.':
-                    print 'continue'
-                    continue
+            if not play.play_reversed and play.description != '6-J. Cutler pass to 17-A. Jeffery for 4 yards, TOUCHDOWN.'::
                 for pe in play.play_events:
                     if pe.event_type in event_points:
                         if play.team.name == self.home_team.name:
