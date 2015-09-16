@@ -212,7 +212,7 @@ class PlayEvent(object):
             team = None
 
         try:
-            points = int(element.xpath('./points')[0])
+            points = int(element.xpath('./points/text()')[0])
         except IndexError:
             points = 0
 
