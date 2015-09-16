@@ -217,7 +217,7 @@ class PlayEvent(object):
             points = 0
 
         if points > 0:
-            print team
+            print team.name, points
 
         return cls(
           event_type=element.xpath('./type/text()')[0],
