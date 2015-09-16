@@ -59,9 +59,9 @@ class FootballPlayByPlayFeed(PlayByPlayFeed):
             if not play.play_reversed:
                 for pe in play.play_events:
                     if pe.points > 0:
-                        if play.team.name == self.home_team.name:
+                        if pe.team.name == self.home_team.name:
                             score['home'] += pe.points
-                        elif play.team.name == self.away_team.name:
+                        elif pe.team.name == self.away_team.name:
                             score['away'] += pe.points
             idx += 1
             if idx < len(self.plays):
