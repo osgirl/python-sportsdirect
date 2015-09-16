@@ -74,7 +74,6 @@ class FootballPlayByPlayFeed(PlayByPlayFeed):
             idx += 1
             if idx < len(self.plays):
                 play = self.plays[idx]
-        print score
         return score
 
 
@@ -172,14 +171,12 @@ class Play(object):
                 penalty['enforced'] = p.xpath('./enforced/text()')[0].lower() == 'true'
                 penalty['yards'] = int(p.xpath('./yards/text()')[0])
                 if (p.xpath('./no-play/text()')[0] == 'true'):
-                    print description, 'reversed'
                     penalty_reversed = True
                 penalties.append(penalty)
         except IndexError:
             pass
 
         if play_reversed or penalty_reversed:
-            print description, 'is reversed'
             play_reversed = True
         return cls(
             play_id=element.xpath('./id/text()')[0],
