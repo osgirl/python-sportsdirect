@@ -53,24 +53,16 @@ class FootballPlayByPlayFeed(PlayByPlayFeed):
 
     def calculate_score_at_play(self, play_id):
         score = {'home': 0, 'away': 0}
-        event_points = {
-            'defensive_touchdown': 6,
-            'field_goal_by': 3,
-            'one_point_conversion': 1,
-            'safety': 2,
-            'touchdown': 6,
-            'two_point_conversion': 2
-        }
         idx = 0
         play = self.plays[idx]
         while play.play_id != play_id:
             if not play.play_reversed:
                 for pe in play.play_events:
-                    if pe.event_type in event_points:
+                    if pe.points > 0:
                         if play.team.name == self.home_team.name:
-                            score['home'] += event_points[pe.event_type]
+                            score['home'] += pe.points
                         elif play.team.name == self.away_team.name:
-                            score['away'] += event_points[pe.event_type]
+                            score['away'] += pe.points
             idx += 1
             if idx < len(self.plays):
                 play = self.plays[idx]
@@ -194,11 +186,13 @@ class Play(object):
 
 
 class PlayEvent(object):
-    def __init__(self, event_type, player=None, yards=None, play=None):
+    def __init__(self, event_type, player=None, yards=None, play=None, team=None, points=0):
         self.event_type = event_type
         self.player = player
         self.yards = yards
         self.play = play
+        self.team = team
+        self.points = points
 
     @classmethod
     def parse(cls, element):
@@ -212,10 +206,22 @@ class PlayEvent(object):
         except IndexError:
             player = None
 
+        try:
+            team = Team.parse(element.xpath('./team')[0])
+        except IndexError:
+            team = None
+
+        try:
+            points = int(element.xpath('./points')[0])
+        except IndexError:
+            points = 0
+
         return cls(
           event_type=element.xpath('./type/text()')[0],
           player=player,
-          yards=yards
+          yards=yards,
+          team=team,
+          points=points
         )
 
 
