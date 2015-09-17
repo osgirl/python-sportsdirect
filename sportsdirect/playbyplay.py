@@ -216,9 +216,6 @@ class PlayEvent(object):
         except IndexError:
             points = 0
 
-        if points > 0:
-            print team.name, points
-
         return cls(
           event_type=element.xpath('./type/text()')[0],
           player=player,

@@ -28,4 +28,9 @@ class BoxScoreFeed(BaseFeed):
         c = root.xpath('//team-sport-content/league-content/season-content/competition')[0]
         self.home_handicap = float(
             c.xpath('./betting/point-spread[@closing="true"]/home-handicap/text()')[0])
+        try:
+            self.is_finished = c.xpath(
+                './result-scope/competition-status/text()')[0].lower() == 'complete'
+        except IndexError:
+            self.is_finished = False
         return self
