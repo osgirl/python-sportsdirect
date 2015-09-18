@@ -170,7 +170,7 @@ class Play(object):
                 penalties.append(penalty)
                 print penalty, penalty_reversed
         except IndexError:
-            pass
+            print 'IE;', penalties
 
         if play_reversed or penalty_reversed:
             play_reversed = True
