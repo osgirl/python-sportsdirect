@@ -170,7 +170,7 @@ class Play(object):
                 penalties.append(penalty)
                 print penalty, penalty_reversed
         except IndexError:
-            print 'IE;', penalties
+            print 'IE;', penalties, element.xpath('./penalty')
 
         if play_reversed or penalty_reversed:
             play_reversed = True
