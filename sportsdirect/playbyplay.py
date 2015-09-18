@@ -162,10 +162,14 @@ class Play(object):
             for p in element.xpath('./penalty'):
                 print p, 'no-play:%s-' % p.xpath('./no-play/text()')
                 penalty = {}
-                penalty['team'] = p.xpath('./team/name/text()')[0]
-                penalty['type'] = p.xpath('./penalty-type/name/text()')[0]
-                penalty['enforced'] = p.xpath('./enforced/text()')[0].lower() == 'true'
-                penalty['yards'] = int(p.xpath('./yards/text()')[0])
+                if p.xpath('./team/name/text()'):
+                    penalty['team'] = p.xpath('./team/name/text()')[0]
+                if p.xpath('./penalty-type/name/text()'):
+                    penalty['type'] = p.xpath('./penalty-type/name/text()')[0]
+                if p.xpath('./enforced/text()'):
+                    penalty['enforced'] = p.xpath('./enforced/text()')[0].lower() == 'true'
+                if p.xpath('./yards/text()'):
+                    penalty['yards'] = int(p.xpath('./yards/text()')[0])
                 if (p.xpath('./no-play/text()')[0] == 'true'):
                     penalty_reversed = True
                 penalties.append(penalty)
