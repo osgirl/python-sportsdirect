@@ -109,6 +109,7 @@ class Play(object):
         self.description = description
         self.play_reversed = play_reversed
         self.penalties = penalties
+        print description
 
         self.play_events = []
 
