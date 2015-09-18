@@ -160,6 +160,7 @@ class Play(object):
         penalties = []
         try:
             for p in element.xpath('./penalty'):
+                print p
                 penalty = {}
                 penalty['team'] = p.xpath('./team/name/text()')[0]
                 penalty['type'] = p.xpath('./penalty-type/name/text()')[0]
