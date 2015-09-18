@@ -63,8 +63,8 @@ class FootballPlayByPlayFeed(PlayByPlayFeed):
                             score['home'] += pe.points
                         elif pe.team.name == self.away_team.name:
                             score['away'] += pe.points
-                else:
-                    print 'Not counting %s' % play.description
+            else:
+                print 'Not counting %s' % play.description
             idx += 1
             if idx < len(self.plays):
                 play = self.plays[idx]
