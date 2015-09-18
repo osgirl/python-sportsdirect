@@ -63,6 +63,8 @@ class FootballPlayByPlayFeed(PlayByPlayFeed):
                             score['home'] += pe.points
                         elif pe.team.name == self.away_team.name:
                             score['away'] += pe.points
+                else:
+                    print 'Not counting %s' % play.description
             idx += 1
             if idx < len(self.plays):
                 play = self.plays[idx]
@@ -165,11 +167,13 @@ class Play(object):
                 if (p.xpath('./no-play/text()')[0] == 'true'):
                     penalty_reversed = True
                 penalties.append(penalty)
+                print penalty, penalty_reversed
         except IndexError:
             pass
 
         if play_reversed or penalty_reversed:
             play_reversed = True
+            print 'Reversing play'
         return cls(
             play_id=element.xpath('./id/text()')[0],
             period_number=int(element.xpath('./event-time/period-number/text()')[0]),

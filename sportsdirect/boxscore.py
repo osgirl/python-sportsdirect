@@ -14,6 +14,7 @@ class BoxScoreFeed(BaseFeed):
         self.competition = competition
         self.home_team = None
         self.away_team = None
+        self.is_finished = False
         super(BoxScoreFeed, self).__init__(fetcher=fetcher)
 
     def get_url(self):
