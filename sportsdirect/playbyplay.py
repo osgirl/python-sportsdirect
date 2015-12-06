@@ -58,7 +58,7 @@ class FootballPlayByPlayFeed(PlayByPlayFeed):
         while play.play_id != play_id:
             if not play.play_reversed:
                 for pe in play.play_events:
-                    if pe.points > 0:
+                    if pe.points > 0 and not pe.nullified:
                         if pe.team.name == self.home_team.name:
                             score['home'] += pe.points
                         elif pe.team.name == self.away_team.name:
@@ -190,13 +190,15 @@ class Play(object):
 
 
 class PlayEvent(object):
-    def __init__(self, event_type, player=None, yards=None, play=None, team=None, points=0):
+    def __init__(self, event_type, player=None, yards=None, play=None, team=None, points=0,
+                 nullified=False):
         self.event_type = event_type
         self.player = player
         self.yards = yards
         self.play = play
         self.team = team
         self.points = points
+        self.nullified = nullified
 
     @classmethod
     def parse(cls, element):
@@ -220,12 +222,18 @@ class PlayEvent(object):
         except IndexError:
             points = 0
 
+        try:
+            nullified = bool(element.xpath('./nullified/text()')[0])
+        except IndexError:
+            nullified = False
+
         return cls(
           event_type=element.xpath('./type/text()')[0],
           player=player,
           yards=yards,
           team=team,
-          points=points
+          points=points,
+          nullified=nullified
         )
 
 
