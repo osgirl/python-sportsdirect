@@ -1,4 +1,6 @@
 import dateutil.parser
+import decimal
+
 
 class Team(object):
     def __init__(self, team_id, name):
@@ -55,6 +57,8 @@ class Player(object):
         self.first_name = first_name
         self.last_name = last_name
 
+        self._stats = []
+
     @classmethod
     def parse(cls, element):
         return cls(
@@ -62,3 +66,34 @@ class Player(object):
             first_name=element.xpath("./name[@type='first']/text()")[0],
             last_name=element.xpath("./name[@type='last']/text()")[0],
         )
+
+    @property
+    def stats(self):
+        return self._stats
+
+    def add_stat(self, stat):
+        self._stats.append(stat)
+
+
+class Stat(object):
+    def __init__(self, num, stat_type, player=None, season_phase_from=None,
+            season_phase_to=None):
+        self.num = num
+        self.stat_type = stat_type
+        self.player = player
+        self.season_phase_from = season_phase_from
+        self.season_phase_to = season_phase_to
+
+    @classmethod
+    def parse(cls, element):
+        return cls(
+            num=cls.parse_num(element.attrib['num']),
+            stat_type=element.attrib['type'],
+        )
+
+    @classmethod
+    def parse_num(cls, val):
+        try:
+            return int(val)
+        except ValueError:
+            return float(val)
