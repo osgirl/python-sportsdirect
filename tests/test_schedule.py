@@ -19,3 +19,4 @@ class ScheduleTestCase(TestCase):
                            if c.competition_id == '/sport/football/competition:47352')
         self.assertEqual(competition.home_team.name, "Carolina")
         self.assertEqual(competition.away_team.name, "New England")
+        self.assertEqual(competition.venue.name, "Bank of America Stadium")

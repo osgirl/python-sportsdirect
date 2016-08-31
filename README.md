@@ -22,3 +22,27 @@ Examples
     >>> games = get_schedule('football', 'NFL')
     >>> print(games[0].home_team.name)
     Carolina
+
+Tests
+-----
+
+To run the unit tests for this package, run:
+
+    python setup.py test
+
+Authors
+-------
+
+* Geoff Hing <geoffhing@gmail.com>
+* Abe Epton
+
+Changelog
+---------
+
+### 0.2
+
+Parse venues information in NFL schedules.
+
+### 0.1
+
+Initial release.
